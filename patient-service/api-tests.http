@@ -1,0 +1,10 @@
+### Create a new patient via Go API Gateway
+POST http://localhost:8080/api/patients/
+Content-Type: application/json
+
+{
+  "firstName": "Israel",
+  "lastName": "Israeli",
+  "dateOfBirth": "1990-01-01",
+  "medicalHistorySummary": "Healthy patient, no known allergies."
+}
