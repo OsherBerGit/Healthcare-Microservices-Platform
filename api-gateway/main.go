@@ -8,7 +8,6 @@ import (
 func main() {
 	patientServiceURLs := []string{
 		"http://localhost:8081",
-		"http://localhost:8083",
 	}
 
 	appointmentServiceURLs := []string{
@@ -21,7 +20,7 @@ func main() {
 	appointmentLB := NewLoadBalancer(appointmentServiceURLs)
 
 	mux.Handle("/api/patients/", verifyJWTMiddleware(patientLB))
-	mux.Handle("/api/appointments/", idempotencyMiddleware(appointmentLB))
+	mux.Handle("/api/appointments/", verifyJWTMiddleware(idempotencyMiddleware(appointmentLB)))
 
 	mux.HandleFunc("/health", healthCheckHandler)
 

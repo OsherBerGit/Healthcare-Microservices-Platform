@@ -4,6 +4,7 @@ import com.healthcare.patientservice.application.port.in.CreatePatientCommand;
 import com.healthcare.patientservice.application.port.in.PatientUseCase;
 import com.healthcare.patientservice.application.port.out.PatientRepositoryPort;
 import com.healthcare.patientservice.domain.Patient;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -31,7 +32,9 @@ public class PatientManagementService implements PatientUseCase {
     }
 
     @Override
+    @Cacheable(value = "patients", key = "#id")
     public Patient getPatient(UUID id) {
+        System.out.println("Fetching patient from PostgreSQL DB... (Cache Miss)");
         return patientRepository.findById(id).orElseThrow();
     }
 }

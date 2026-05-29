@@ -1,0 +1,9 @@
+POST http://localhost:8082/api/appointments
+Content-Type: application/json
+
+{
+  "patientId": "p-98765",
+  "doctorId": "Dr. Osher",
+  "appointmentTime": "2026-06-01T10:30:00",
+  "reasonForVisit": "Annual Checkup"
+}
