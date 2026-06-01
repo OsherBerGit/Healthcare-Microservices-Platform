@@ -14,13 +14,21 @@ func main() {
 		"http://localhost:8082",
 	}
 
+	triageServiceURLs := []string{
+		"http://127.0.0.1:8000",
+	}
+
 	mux := http.NewServeMux()
 
 	patientLB := NewLoadBalancer(patientServiceURLs)
 	appointmentLB := NewLoadBalancer(appointmentServiceURLs)
 
+	triageLB := NewLoadBalancer(triageServiceURLs)
+
 	mux.Handle("/api/patients/", verifyJWTMiddleware(patientLB))
 	mux.Handle("/api/appointments/", verifyJWTMiddleware(idempotencyMiddleware(appointmentLB)))
+
+	mux.Handle("/api/triage/", verifyJWTMiddleware(triageLB))
 
 	mux.HandleFunc("/health", healthCheckHandler)
 

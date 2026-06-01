@@ -1,0 +1,6 @@
+*.bat export-ignore
+Dockerfile export-ignore
+docker-compose.yml export-ignore
+
+Dockerfile linguist-documentation
+docker-compose.yml linguist-documentation
