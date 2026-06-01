@@ -23,4 +23,7 @@ public class AppointmentPersistenceAdapter implements AppointmentRepository {
     public Optional<Appointment> findById(UUID id) {
         return jpaRepository.findById(id);
     }
+
+    @Override
+    public void deleteByPatientId(String patientId) { jpaRepository.deleteByPatientId(patientId); }
 }

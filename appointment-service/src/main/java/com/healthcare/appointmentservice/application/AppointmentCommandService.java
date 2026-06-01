@@ -24,4 +24,9 @@ public class AppointmentCommandService {
 
         return savedAppointment;
     }
+
+    @Transactional
+    public void deleteAppointmentByPatientId(String patientId) {
+        appointmentRepository.deleteByPatientId(patientId);
+    }
 }

@@ -1,0 +1,149 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: healthcare
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthcare-net
+
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - healthcare-net
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - healthcare-net
+
+  kafka:
+    image: bitnami/kafka:latest
+    environment:
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    ports:
+      - "9094:9094"
+    volumes:
+      - kafka_data:/bitnami/kafka
+    networks:
+      - healthcare-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8083:8080"
+    networks:
+      - healthcare-net
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - healthcare-net
+    depends_on:
+      - patient
+      - appointment
+      - triage
+
+  triage:
+    build:
+      context: ./triage
+    ports:
+      - "8000:8000"
+    networks:
+      - healthcare-net
+
+  patient:
+    build:
+      context: ./patient
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/patient_db
+    networks:
+      - healthcare-net
+    depends_on:
+      - mongodb
+
+  appointment:
+    build:
+      context: ./appointment
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/healthcare
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - healthcare-net
+    depends_on:
+      - postgres
+      - kafka
+
+  audit:
+    build:
+      context: ./audit
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - healthcare-net
+    depends_on:
+      - kafka
+
+  billing:
+    build:
+      context: ./billing
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - healthcare-net
+    depends_on:
+      - kafka
+
+  notification:
+    build:
+      context: ./notification
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - healthcare-net
+    depends_on:
+      - kafka
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  kafka_data:
+
+networks:
+  healthcare-net:
+    driver: bridge

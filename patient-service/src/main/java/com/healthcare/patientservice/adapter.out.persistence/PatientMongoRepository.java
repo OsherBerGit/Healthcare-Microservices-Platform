@@ -5,4 +5,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.UUID;
 
 public interface PatientMongoRepository extends MongoRepository<PatientDocument, UUID> {
+    void deleteByFirstName(String firstName);
 }

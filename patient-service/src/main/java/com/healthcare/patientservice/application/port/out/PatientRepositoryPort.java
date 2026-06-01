@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface PatientRepositoryPort {
     Patient save(Patient patient);
     Optional<Patient> findById(UUID id);
+    void deleteByFirstName(String firstName);
 }

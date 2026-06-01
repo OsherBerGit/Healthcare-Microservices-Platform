@@ -5,10 +5,7 @@ import com.healthcare.appointmentservice.domain.model.Appointment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/appointments")
@@ -29,5 +26,11 @@ public class AppointmentController {
         var scheduledAppointment = commandService.scheduleAppointment(appointmentToSchedule);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(scheduledAppointment);
+    }
+
+    @DeleteMapping("/rollback")
+    public ResponseEntity<Void> rollbackAppointment(@RequestBody AppointmentRequest request) {
+        commandService.deleteAppointmentByPatientId(request.patientId());
+        return ResponseEntity.noContent().build();
     }
 }

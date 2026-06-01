@@ -53,4 +53,10 @@ public class PatientController {
 
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/rollback")
+    public ResponseEntity<Void> rollbackPatient(@RequestBody CreatePatientRequest request) {
+        patientUseCase.deletePatientByName(request.firstName());
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -37,4 +37,9 @@ public class PatientManagementService implements PatientUseCase {
         System.out.println("Fetching patient from PostgreSQL DB... (Cache Miss)");
         return patientRepository.findById(id).orElseThrow();
     }
+
+    @Override
+    public void deletePatientByName(String firstName) {
+        patientRepository.deleteByFirstName(firstName);
+    }
 }

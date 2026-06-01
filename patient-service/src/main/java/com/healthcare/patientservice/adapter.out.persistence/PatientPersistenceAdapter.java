@@ -42,4 +42,9 @@ public class PatientPersistenceAdapter implements PatientRepositoryPort {
                         .build()
         );
     }
+
+    @Override
+    public void deleteByFirstName(String firstName) {
+        mongoRepository.deleteByFirstName(firstName);
+    }
 }

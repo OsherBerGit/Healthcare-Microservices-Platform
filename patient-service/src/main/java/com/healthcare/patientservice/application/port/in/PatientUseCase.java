@@ -7,4 +7,5 @@ import java.util.UUID;
 public interface PatientUseCase {
     Patient createPatient(CreatePatientCommand command);
     Patient getPatient(UUID id);
+    void deletePatientByName(String firstName);
 }

@@ -8,4 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface AppointmentJpaRepository extends JpaRepository<Appointment, UUID> {
+    void deleteByPatientId(String patientId);
 }
