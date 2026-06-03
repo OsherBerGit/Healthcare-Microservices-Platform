@@ -20,3 +20,7 @@ spring.kafka.producer.value-serializer=org.apache.kafka.common.serialization.Str
 
 # Keycloak
 spring.security.oauth2.resourceserver.jwt.issuer-uri=http://localhost:8180/realms/HealthcareRealm
+
+# Prometheus
+management.endpoints.web.exposure.include=health,info,prometheus
+management.metrics.tags.application=${spring.application.name}
