@@ -72,6 +72,11 @@ services:
       - patient
       - appointment
       - triage
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   triage:
     build:
@@ -80,6 +85,11 @@ services:
       - "8000:8000"
     networks:
       - healthcare-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   patient:
     build:
@@ -92,6 +102,11 @@ services:
       - healthcare-net
     depends_on:
       - mongodb
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   appointment:
     build:
@@ -108,6 +123,11 @@ services:
     depends_on:
       - postgres
       - kafka
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   audit:
     build:
@@ -118,6 +138,11 @@ services:
       - healthcare-net
     depends_on:
       - kafka
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   billing:
     build:
@@ -128,6 +153,11 @@ services:
       - healthcare-net
     depends_on:
       - kafka
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   notification:
     build:
@@ -138,6 +168,11 @@ services:
       - healthcare-net
     depends_on:
       - kafka
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   prometheus:
     image: prom/prometheus:latest
@@ -159,6 +194,25 @@ services:
       - healthcare-net
     depends_on:
       - prometheus
+
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - healthcare-net
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+    networks:
+      - healthcare-net
+    depends_on:
+      - loki
 
 volumes:
   postgres_data:

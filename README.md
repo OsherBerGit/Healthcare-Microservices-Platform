@@ -37,10 +37,12 @@ Built strictly on **Domain-Driven Design (DDD)** principles, the project showcas
 * **Caching:** Redis (High-Performance Caching).
 * **IAM:** Keycloak (Identity & Access Management).
 * **DevOps:** Docker, Docker Compose.
+* **Logging:** Grafana Loki (Centralized log aggregation for all microservices)
 
 ### Observability & Monitoring
 * **Metrics Collection:** Prometheus (Scraping Spring Boot Actuator endpoints).
-* **Visualization:** Grafana (Dynamic dashboards for JVM memory, CPU, and HTTP requests).
+* **Visualization:** Grafana (Dynamic dashboards for system health, JVM metrics, and resource utilization).
+* **Centralized Logging:** Grafana Loki with Promtail (Aggregating container logs from Docker for unified troubleshooting).
 
 ## ✨ Technical Highlights & Features
 
@@ -118,9 +120,11 @@ Authorization: Bearer <Keycloak_Token>
 ```
 
 ### 5. Monitor the System (Observability)
-Once the ecosystem is running, access the monitoring dashboards:
-* **Prometheus:** `http://localhost:9090` (Check Target Health)
-* **Grafana:** `http://localhost:3000` (Explore JVM Dashboards - Login: `admin`/`admin`)
+Once the ecosystem is running, access the monitoring tools:
+* **Prometheus:** `http://localhost:9090` (Check target health status)
+* **Grafana:** `http://localhost:3000` (Login: `admin`/`admin`)
+    * **Metrics:** Use the pre-imported JVM Dashboards.
+    * **Logs:** Navigate to **Explore** ➔ select **Loki** ➔ query `{job="docker"}` to view logs across all services.
 
 ### 📁 Project Structure
 ```text
@@ -134,6 +138,7 @@ Once the ecosystem is running, access the monitoring dashboards:
  ├── 📂 notification-service/ # Java Spring Boot, Kafka Consumer
  └── 📜 docker-compose.yml    # Infra: Postgres, Mongo, Redis, Kafka, Keycloak
  └── 📜 prometheus.yml        # Prometheus scrape configurations
+ └── 📜 promtail-config.yaml  # Promtail log collection configuration
 ```
 
 ---
