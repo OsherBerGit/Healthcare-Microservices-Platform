@@ -8,6 +8,8 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?logo=mongodb&logoColor=white)
 ![Keycloak](https://img.shields.io/badge/Keycloak-JBoss-blue?logo=keycloak)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
 
 ## 📖 About
 **HealthSaga** is a highly scalable, event-driven microservices ecosystem designed for modern healthcare management. The system seamlessly integrates a high-performance API Gateway, multiple domain-specific microservices, and an AI-powered medical triage engine. 
@@ -36,6 +38,10 @@ Built strictly on **Domain-Driven Design (DDD)** principles, the project showcas
 * **IAM:** Keycloak (Identity & Access Management).
 * **DevOps:** Docker, Docker Compose.
 
+### Observability & Monitoring
+* **Metrics Collection:** Prometheus (Scraping Spring Boot Actuator endpoints).
+* **Visualization:** Grafana (Dynamic dashboards for JVM memory, CPU, and HTTP requests).
+
 ## ✨ Technical Highlights & Features
 
 ### 🧩 Enterprise Microservices Architecture
@@ -52,6 +58,10 @@ Built strictly on **Domain-Driven Design (DDD)** principles, the project showcas
 
 ### 🧠 AI Medical Triage
 * **FastAPI ML Endpoint:** An isolated microservice evaluating patient vitals (Age, Heart Rate, Blood Pressure, Temperature) to predict urgency, deeply integrated into the Saga admission flow.
+
+### 📊 Full Observability Stack
+* **Real-time Metrics:** Deep integration with Spring Boot Actuator to expose JVM internals, HikariCP connection pools, and real-time HTTP metrics.
+* **Centralized Dashboards:** Grafana connected to Prometheus via a secure Docker bridge network, visualizing live traffic, resource utilization, and system health.
 
 ## 🚀 Quick Start
 
@@ -107,6 +117,11 @@ Authorization: Bearer <Keycloak_Token>
 }
 ```
 
+### 5. Monitor the System (Observability)
+Once the ecosystem is running, access the monitoring dashboards:
+* **Prometheus:** `http://localhost:9090` (Check Target Health)
+* **Grafana:** `http://localhost:3000` (Explore JVM Dashboards - Login: `admin`/`admin`)
+
 ### 📁 Project Structure
 ```text
 📦 HealthSaga
@@ -118,6 +133,7 @@ Authorization: Bearer <Keycloak_Token>
  ├── 📂 audit-service/        # Java Spring Boot, Kafka Consumer
  ├── 📂 notification-service/ # Java Spring Boot, Kafka Consumer
  └── 📜 docker-compose.yml    # Infra: Postgres, Mongo, Redis, Kafka, Keycloak
+ └── 📜 prometheus.yml        # Prometheus scrape configurations
 ```
 
 ---

@@ -33,19 +33,20 @@ services:
       - healthcare-net
 
   kafka:
-    image: bitnami/kafka:latest
+    image: apache/kafka:latest
     environment:
-      KAFKA_CFG_NODE_ID: 1
-      KAFKA_CFG_PROCESS_ROLES: broker,controller
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      CLUSTER_ID: 'HealthSagaCluster123'
     ports:
       - "9094:9094"
     volumes:
-      - kafka_data:/bitnami/kafka
+      - kafka_data:/tmp/kafka-logs
     networks:
       - healthcare-net
 
@@ -74,7 +75,7 @@ services:
 
   triage:
     build:
-      context: ./triage
+      context: ./triage-service
     ports:
       - "8000:8000"
     networks:
@@ -82,7 +83,7 @@ services:
 
   patient:
     build:
-      context: ./patient
+      context: ./patient-service
     ports:
       - "8081:8081"
     environment:
@@ -94,7 +95,7 @@ services:
 
   appointment:
     build:
-      context: ./appointment
+      context: ./appointment-service
     ports:
       - "8082:8082"
     environment:
@@ -110,7 +111,7 @@ services:
 
   audit:
     build:
-      context: ./audit
+      context: ./audit-service
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     networks:
@@ -120,7 +121,7 @@ services:
 
   billing:
     build:
-      context: ./billing
+      context: ./billing-service
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     networks:
@@ -130,14 +131,13 @@ services:
 
   notification:
     build:
-      context: ./notification
+      context: ./notification-service
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
     networks:
       - healthcare-net
     depends_on:
       - kafka
-
 
   prometheus:
     image: prom/prometheus:latest
