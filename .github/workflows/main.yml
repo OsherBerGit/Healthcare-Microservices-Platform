@@ -19,4 +19,4 @@ jobs:
 
     - name: Verify Architecture and Build All Services
       run: |
-        docker-compose build
+        docker compose build
