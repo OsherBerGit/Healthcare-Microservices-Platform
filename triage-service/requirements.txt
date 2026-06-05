@@ -4,3 +4,7 @@ pydantic==2.13.4
 scikit-learn==1.8.0
 pandas==3.0.3
 joblib==1.5.3
+opentelemetry-api==1.25.0
+opentelemetry-sdk==1.25.0
+opentelemetry-instrumentation-fastapi==0.46b0
+opentelemetry-exporter-otlp-proto-http==1.25.0

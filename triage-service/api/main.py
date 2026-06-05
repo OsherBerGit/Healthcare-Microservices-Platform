@@ -3,12 +3,26 @@ import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from schemas import PatientTriageRequest, TriageResponse
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+resource = Resource.create({"service.name": "triage-service"})
+provider = TracerProvider(resource=resource)
+processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="http://jaeger:4318/v1/traces"))
+provider.add_span_processor(processor)
+trace.set_tracer_provider(provider)
 
 app = FastAPI(
     title="Triage AI Service",
     description="Predicts patient urgency using Real-World ICU Data Artifacts",
     version="2.0.0"
 )
+
+FastAPIInstrumentor.instrument_app(app)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 ARTIFACTS_PATH = os.path.join(script_dir, "..", "data", "models", "triage_artifacts.pkl")

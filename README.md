@@ -10,6 +10,7 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
+![Jaeger](https://img.shields.io/badge/Jaeger-005691?logo=jaeger&logoColor=white)
 
 ## 📖 About
 **HealthSaga** is a highly scalable, event-driven microservices ecosystem designed for modern healthcare management. The system seamlessly integrates a high-performance API Gateway, multiple domain-specific microservices, and an AI-powered medical triage engine. 
@@ -43,6 +44,7 @@ Built strictly on **Domain-Driven Design (DDD)** principles, the project showcas
 * **Metrics Collection:** Prometheus (Scraping Spring Boot Actuator endpoints).
 * **Visualization:** Grafana (Dynamic dashboards for system health, JVM metrics, and resource utilization).
 * **Centralized Logging:** Grafana Loki with Promtail (Aggregating container logs from Docker for unified troubleshooting).
+* **Distributed Tracing:** OpenTelemetry API/SDK wrapper wired across the Go Gateway, Spring Boot services, and FastAPI node, exporting spans to a centralized Jaeger collector via OTLP/HTTP.
 
 ## ✨ Technical Highlights & Features
 
@@ -125,6 +127,7 @@ Once the ecosystem is running, access the monitoring tools:
 * **Grafana:** `http://localhost:3000` (Login: `admin`/`admin`)
     * **Metrics:** Use the pre-imported JVM Dashboards.
     * **Logs:** Navigate to **Explore** ➔ select **Loki** ➔ query `{job="docker"}` to view logs across all services.
+* **Jaeger UI:** `http://localhost:16686` (Analyze distributed transactions and end-to-end trace contexts across Golang, Java, and Python).
 
 ### 📁 Project Structure
 ```text

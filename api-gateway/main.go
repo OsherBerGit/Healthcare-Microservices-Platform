@@ -2,17 +2,61 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
+func initTracer() *trace.TracerProvider {
+	client := otlptracehttp.NewClient(
+		otlptracehttp.WithEndpoint("jaeger:4318"),
+		otlptracehttp.WithInsecure(),
+	)
+	exporter, err := otlptrace.New(context.Background(), client)
+	if err != nil {
+		log.Fatalf("failed to create exporter: %v", err)
+	}
+	res, err := resource.New(
+		context.Background(),
+		resource.WithAttributes(
+			attribute.String("service.name", "api-gateway"),
+		),
+	)
+	if err != nil {
+		log.Fatalf("failed to create resource: %v", err)
+	}
+	tp := trace.NewTracerProvider(
+		trace.WithBatcher(exporter),
+		trace.WithResource(res),
+	)
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	return tp
+}
+
 func main() {
-	patientServiceURLs := []string{"http://localhost:8081"}
-	appointmentServiceURLs := []string{"http://localhost:8082"}
-	triageServiceURLs := []string{"http://127.0.0.1:8000"}
+	tp := initTracer()
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			log.Fatalf("Error shutting down tracer provider: %v", err)
+		}
+	}()
+
+	patientServiceURLs := []string{"http://patient:8081"}
+	appointmentServiceURLs := []string{"http://appointment:8082"}
+	triageServiceURLs := []string{"http://triage:8000"}
 
 	mux := http.NewServeMux()
 
@@ -33,8 +77,10 @@ func main() {
 
 	mux.HandleFunc("/health", healthCheckHandler)
 
+	wrappedMux := otelhttp.NewHandler(securityHeadersMiddleware(loggingMiddleware(mux)), "api-gateway")
+
 	log.Println("Starting Healthcare API Gateway with Load Balancing on port 8080...")
-	if err := http.ListenAndServe(":8080", securityHeadersMiddleware(loggingMiddleware(mux))); err != nil {
+	if err := http.ListenAndServe(":8080", wrappedMux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }
@@ -57,9 +103,10 @@ func sagaAdmissionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := r.Header.Get("Authorization")
+	ctx := r.Context()
 
 	patientReq, _ := json.Marshal(map[string]interface{}{"name": reqData["name"]})
-	resp1, err := makeSagaRequest("POST", "http://localhost:8080/api/patients", patientReq, token)
+	resp1, err := makeSagaRequest(ctx, "POST", "http://localhost:8080/api/patients", patientReq, token)
 	if err != nil || (resp1.StatusCode != http.StatusOK && resp1.StatusCode != http.StatusCreated) {
 		http.Error(w, "Saga failed at Patient creation", http.StatusInternalServerError)
 		return
@@ -78,9 +125,9 @@ func sagaAdmissionHandler(w http.ResponseWriter, r *http.Request) {
 		"reasonForVisit":  "Triage Admission Process",
 	})
 
-	resp2, err := makeSagaRequest("POST", "http://localhost:8080/api/appointments", appointmentReq, token)
+	resp2, err := makeSagaRequest(ctx, "POST", "http://localhost:8080/api/appointments", appointmentReq, token)
 	if err != nil || (resp2.StatusCode != http.StatusOK && resp2.StatusCode != http.StatusCreated) {
-		makeSagaRequest("DELETE", "http://localhost:8080/api/patients/rollback", patientReq, token)
+		makeSagaRequest(ctx, "DELETE", "http://localhost:8080/api/patients/rollback", patientReq, token)
 		http.Error(w, "Saga failed at Appointment creation. Patient rolled back.", http.StatusInternalServerError)
 		return
 	}
@@ -93,10 +140,10 @@ func sagaAdmissionHandler(w http.ResponseWriter, r *http.Request) {
 		"symptoms_summary":        "Patient admitted via Saga orchestration",
 	})
 
-	resp3, err := makeSagaRequest("POST", "http://localhost:8080/api/triage/predict", triageReq, token)
+	resp3, err := makeSagaRequest(ctx, "POST", "http://localhost:8080/api/triage/predict", triageReq, token)
 	if err != nil || resp3.StatusCode != http.StatusOK {
-		makeSagaRequest("DELETE", "http://localhost:8080/api/appointments/rollback", appointmentReq, token)
-		makeSagaRequest("DELETE", "http://localhost:8080/api/patients/rollback", patientReq, token)
+		makeSagaRequest(ctx, "DELETE", "http://localhost:8080/api/appointments/rollback", appointmentReq, token)
+		makeSagaRequest(ctx, "DELETE", "http://localhost:8080/api/patients/rollback", patientReq, token)
 		http.Error(w, "Saga failed at Triage prediction. Appointment & Patient rolled back.", http.StatusInternalServerError)
 		return
 	}
@@ -106,8 +153,8 @@ func sagaAdmissionHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"status":"success","message":"Full admission process completed successfully via Saga"}`))
 }
 
-func makeSagaRequest(method, url string, body []byte, token string) (*http.Response, error) {
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+func makeSagaRequest(ctx context.Context, method, url string, body []byte, token string) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +165,8 @@ func makeSagaRequest(method, url string, body []byte, token string) (*http.Respo
 	req.Header.Set("Idempotency-Key", idempotencyKey)
 	req.Header.Set("X-Idempotency-Key", idempotencyKey)
 
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
 	return client.Do(req)
 }
