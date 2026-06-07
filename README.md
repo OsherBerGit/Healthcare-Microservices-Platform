@@ -11,6 +11,7 @@
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?logo=prometheus&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
 ![Jaeger](https://img.shields.io/badge/Jaeger-005691?logo=jaeger&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=black)
 
 ## 📖 About
 **HealthSaga** is a highly scalable, event-driven microservices ecosystem designed for modern healthcare management. The system seamlessly integrates a high-performance API Gateway, multiple domain-specific microservices, and an AI-powered medical triage engine. 
@@ -29,7 +30,7 @@ Built strictly on **Domain-Driven Design (DDD)** principles, the project showcas
 * **Services:** Patient, Appointment, Billing, Audit, Notification.
 
 ### Machine Learning Engine (Triage)
-* **Core:** Python 3.10, FastAPI
+* **Core:** Python 3.11, FastAPI
 * **Model:** Tiny ML Prediction Model (based on [Kaggle Patient Dataset](https://www.kaggle.com/datasets/mitishaagarwal/patient)).
 
 ### Infrastructure & Data
@@ -128,6 +129,13 @@ Once the ecosystem is running, access the monitoring tools:
     * **Metrics:** Use the pre-imported JVM Dashboards.
     * **Logs:** Navigate to **Explore** ➔ select **Loki** ➔ query `{job="docker"}` to view logs across all services.
 * **Jaeger UI:** `http://localhost:16686` (Analyze distributed transactions and end-to-end trace contexts across Golang, Java, and Python).
+
+### 6. Interactive API Documentation (Swagger)
+Each underlying microservice exposes an isolated Swagger/OpenAPI UI for independent endpoint verification and testing (bypass the gateway for direct contract inspection):
+* **Patient Service Contract:** `http://localhost:8081/swagger-ui.html`
+* **Appointment Service Contract:** `http://localhost:8082/swagger-ui.html`
+* **Billing Service Contract:** `http://localhost:8083/swagger-ui.html`
+* **Triage AI Engine (FastAPI):** `http://localhost:8000/docs`
 
 ### 📁 Project Structure
 ```text
